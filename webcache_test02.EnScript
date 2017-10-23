@@ -1,0 +1,95 @@
+class MainClass {
+  void Main(CaseClass c) {
+    SystemClass::ClearConsole(SystemClass::SHOWCONSOLE);
+    Console.WriteLine("Start\n");
+
+    DateClass start(), finish();
+    start.Now();
+
+    for(ItemIteratorClass i(c); EntryClass e = i.GetNextEntry();){
+      if(e.Name().Contains("WebCacheV") && e.TruePath().Contains("\\Microsoft\\Windows") && e.Extension() == "dat"){
+        Console.WriteLine(e.TruePath());
+
+        EntryFileClass ef();
+        SearchClass search(), container();
+
+        search.AddKeyword("\\x11\\x7F\\x77\\x00", KeywordClass::GREP);
+        container.AddKeyword("\\x48\\x00\\x69\\x00\\x73\\x00\\x74\\x00\\x6F\\x00\\x72\\x00\\x79\\x00", KeywordClass::GREP);
+        container.AddKeyword("\\x08\\x20\\x00\\x00\\x00", KeywordClass::GREP);
+        container.AddKeyword("\\x03\\xA0\\x05\\x00", KeywordClass::GREP);
+
+        if(ef.Open(e)){
+            int c_id;
+
+            if(container.Find(ef, -1, -1, SearchClass::STATUSUPDATE)){
+                foreach(SearchClass::HitClass hit in container.GetHits()){
+                    if(hit.KeywordIndex() == 0){
+                        String container_name;
+                        int p_id, value;
+                        int offset = hit.Offset();
+                        ef.Seek(offset), ef.ReadString(container_name);
+                        ef.Skip(0x09), p_id = ef.ReadBinaryInt(1);
+                        ef.Skip(0x06), value = ef.ReadBinaryInt(1);
+
+                        if(container_name == "History" && p_id == 77 && value = 58){
+                            ef.Seek(offset - 0x37), c_id = ef.ReadBinaryInt(1);
+                        }
+                    }
+                    else if(hit.KeywordIndex() == 1){
+                        int idx;
+                        String url;
+                        int offset = hit.Offset();
+                        ef.Seek(offset);
+                        ef.Skip(0x05), idx = ef.ReadBinaryInt(5, 0);
+                        ef.ReadString(url);
+                        if(url.SubString(0,7) == "Visited")
+                            Console.WriteLine(url);
+                    }
+                    else if(hit.KeywordIndex() == 2){
+                        int idx;
+                        String url;
+                        int offset = hit.Offset();
+                        ef.Seek(offset);
+                        ef.Skip(0x04), idx = ef.ReadBinaryInt(5, 0);
+                        ef.ReadString(url);
+                        if(url.SubString(0,7) == "Visited")
+                            Console.WriteLine(url);
+                    }
+                }
+            }
+
+            ef.Seek(0);
+            int cnt = 0;
+            if(search.Find(ef, -1, -1, SearchClass::STATUSUPDATE)){
+                foreach(SearchClass::HitClass hit in search.GetHits()){
+                    if(hit.KeywordIndex() == 0){
+                        String url, title;
+                        int entry_id, id, access_cnt;
+                        int offset = hit.Offset();
+
+                        ef.Seek(offset + 4), entry_id = ef.ReadBinaryInt(8);
+                        ef.Seek(offset + 12), id = ef.ReadBinaryInt(8);
+                        ef.Seek(offset + 56), access_cnt = ef.ReadBinaryInt(4);
+                        DateClass access_date();
+                        ef.Seek(offset + 92), ef.ReadWinDate(access_date);
+                        ef.Seek(offset + 128), ef.ReadString(url);
+                        ef.Skip(0x61), ef.ReadString(title);
+
+                        if(id == c_id){
+                            cnt++;
+                            Console.WriteLine(url);
+                        }
+
+                    }
+                }
+                Console.WriteLine("\ncnt : {0}",cnt);
+            }
+            break;
+        }
+      }
+    }
+
+    finish.Now();
+    SystemClass::Message(ICONINFORMATION, "Script", "Start : " + start.GetString() + "\nFinish : " + finish.GetString());
+  }
+}

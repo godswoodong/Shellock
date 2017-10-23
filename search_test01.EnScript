@@ -1,0 +1,45 @@
+class MainClass {
+  const static String INPUT = "The quick brown fox jumps over the lazy dog.";
+
+  void Main() {
+    SystemClass::ClearConsole(SystemClass::SHOWCONSOLE);
+
+    MemoryFileClass file();
+    if (file.Open(INPUT)) {
+      SearchClass search();
+      search.AddKeyword("brown", KeywordClass::UNICODE | KeywordClass::CASE); // MemoryFileClass objects open EnScript strings as Unicode
+      search.AddKeyword("quick", KeywordClass::ANSI);                         // "quick" will not be found, because the Unicode flag is not set
+      search.AddKeyword("the",   KeywordClass::UNICODE);                      // "the" will be found, because the keyword is not case sensitive
+
+      if (search.Create()) { // Initialize the search engine
+        uint count = search.Find(file); // Search the file
+        if (count > 0) {
+          uint countBrown = 0,
+               countQuick = 0,
+               countThe   = 0;
+
+          SearchClass::HitArrayClass hits = search.GetHits(); // Retrieve the array of search hits
+          foreach (SearchClass::HitClass hit in hits) { // Iterate the search hits
+            if (hit.KeywordIndex() == 0)     // KeywordIndex() is according to the order in which the keywords were added
+              ++countBrown;
+            else if (hit.KeywordIndex() == 1)
+              ++countQuick;
+            else if (hit.KeywordIndex() == 2)
+              ++countThe;
+          }
+          CountResults("Brown", 1, countBrown);
+          CountResults("Quick", 0, countQuick);
+          CountResults("The", 2, countThe);
+        }
+        else
+          Console.WriteLine("Some hits should have been found!");
+      }
+      else
+        Console.WriteLine("Could not create search engine: {0}", SystemClass::LastError());
+    }
+  }
+
+  private void CountResults(const String &kwdName, uint expected, uint actual) {
+    Console.WriteLine("{0}: Expected {1}; {2}", kwdName, expected, expected == actual ? "Success" : "Fail");
+  }
+}
