@@ -1,0 +1,60 @@
+class MainClass {
+	
+	void Main(CaseClass c) {
+		SystemClass::ClearConsole(SystemClass::SHOWCONSOLE);
+    Console.WriteLine("SCRIPT START\n");
+
+    DateClass start(), finish();
+    start.Now();
+
+		String path = c.ExportFolder() + "\\lnk_parser";
+		ConnectionClass conn = LocalMachine;
+    conn.CreateFolder(path, ConnectionClass::CREATEFOLDERALL);
+    conn.CreateFolder(path + "\\lnk_export", ConnectionClass::CREATEFOLDERALL);
+    conn.Close();
+
+    uint num = 0;
+    String str_num;
+
+		ParserClass::LinkParserClass lnk_parser = new ParserClass::LinkParserClass();
+		ParserClass::LinkArtifactClass lnk_list = new ParserClass::LinkArtifactClass();
+	
+		for(ItemIteratorClass i(c); EntryClass e = i.GetNextEntry();) {
+			EntryFileClass ef();
+			if(ef.Open(e)) {
+				if(lnk_parser.IsValidFile(ef))
+          lnk_parser.Run(ef);
+				else
+					continue;
+			}
+      else
+        continue;
+	
+			lnk_list = lnk_parser.Artifacts();
+			LocalFileClass result = new LocalFileClass();
+			result.Open(path + "\\LNK_result.csv", FileClass::WRITE + FileClass::TEXT);
+      result.WriteLine("File name\tModified Time\tAccessed Time\tCreated Time\tLink Path\tBase Path\tDescription\t");
+			
+			foreach(ParserClass::LinkArtifactClass link in lnk_list){
+        String query;
+				String name = ef.GetEntry().Name();
+				String mtime = link.Modified().GetString("yyyy/MM/dd", "hh:mm:ss tt", 9 * -3600);
+				String atime = link.Accessed().GetString("yyyy/MM/dd", "hh:mm:ss tt", 9 * -3600);
+				String ctime = link.Created().GetString("yyyy/MM/dd", "hh:mm:ss tt", 9 * -3600);
+				String lnk_path = link.FileName();
+        String base_path = link.BasePath();
+        String desc = link.Description();
+        String relative_path = link.RelativePath();
+        String filename = relative_path.GetFilename();
+
+        if(filename){
+          query = filename + "\t" + mtime + "\t" + atime + "\t" + ctime + "\t" + name + "\t" + base_path + "\t" + desc + "\t";
+          result.WriteLine(query);
+        }
+			}	
+		}
+
+    finish.Now();
+    SystemClass::Message(ICONINFORMATION, "Script", "Start : " + start.GetString() + "\nFinish : " + finish.GetString());
+	}
+}

@@ -1,0 +1,66 @@
+class MainClass {
+  void Main(CaseClass c) {
+    SystemClass::ClearConsole(SystemClass::SHOWCONSOLE);
+    Console.WriteLine("Start\n");
+
+    DateClass start(), finish();
+    start.Now();
+
+    ParserClass::LinkParserClass lnk_parser = new ParserClass::LinkParserClass();
+    ParserClass::LinkArtifactClass lnk_artifact = new ParserClass::LinkArtifactClass();
+
+    ConnectionClass conn = LocalMachine;
+    conn.CreateFolder(c.ExportFolder() + "\\lnk_test", ConnectionClass::CREATEFOLDERALL);
+    conn.Close();
+
+    int num = 0;
+    String str_num;
+
+    LocalFileClass result = new LocalFileClass();
+    result.Open(c.ExportFolder() + "\\lnk_test.csv", FileClass::WRITE + FileClass::TEXT);
+    result.WriteLine("FileName\tPath\tC-Time\tM-Time\tA-Time\tDescription\t");
+    for(ItemIteratorClass i(c); EntryClass e = i.GetNextEntry();){
+      EntryFileClass ef();
+      if(ef.Open(e)){
+        if(lnk_parser.IsValidFile(ef)){
+          str_num = String::FormatInt(num++);
+          LocalFileClass lf = new LocalFileClass();
+          lf.Open(c.ExportFolder() + "\\lnk_test\\" + str_num + "_" + e.Name(), FileClass::WRITE);
+          lf.WriteBuffer(ef);
+          lf.Close();
+          lnk_parser.Run(ef);
+          lnk_artifact = lnk_parser.Artifacts();
+          Console.WriteLine("[+] foreach");
+          foreach(ParserClass::LinkArtifactClass link in lnk_artifact){
+            String mtime = link.Modified().GetString("yyyy/MM/dd", "hh:mm:ss tt", 9 * -3600);
+            String atime = link.Accessed().GetString("yyyy/MM/dd", "hh:mm:ss tt", 9 * -3600);
+            String ctime = link.Created().GetString("yyyy/MM/dd", "hh:mm:ss tt", 9 * -3600);
+            String filename = ef.GetEntry().Name();
+            String path = link.BasePath();
+            String desc = link.Description();
+
+            String query = filename + "\t" + ctime + "\t" + mtime + "\t" + atime + "\t" + desc + "\t";
+            result.WriteLine(query);
+            Console.WriteLine("==============================");
+
+
+            Console.WriteLine("file name : {0}", filename);
+            Console.WriteLine("modified time : {0}",mtime);
+            Console.WriteLine("created time : {0}",ctime);
+            Console.WriteLine("accessed time : {0}",atime);
+            Console.WriteLine("path : {0}", path);
+            Console.WriteLine(desc);
+          }
+          Console.WriteLine("[-] foreach end");
+        }
+      }
+    }
+
+
+
+    result.Close();
+
+    finish.Now();
+    SystemClass::Message(ICONINFORMATION, "Script", "Start : " + start.GetString() + "\nFinish : " + finish.GetString());
+  }
+}
